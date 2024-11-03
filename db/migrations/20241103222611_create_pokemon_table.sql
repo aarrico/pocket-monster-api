@@ -13,4 +13,6 @@ CREATE TABLE pokemon (
 -- +goose StatementEnd
 
 -- +goose Down
+-- +goose StatementBegin
 DROP TABLE pokemon;
+-- +goose StatementEnd

@@ -11,6 +11,37 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const createPokemon = `-- name: CreatePokemon :one
+INSERT INTO pokemon (
+    name, height, weight, national_dex_order, base_experience, is_default, sort_order
+) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id
+`
+
+type CreatePokemonParams struct {
+	Name             pgtype.Text
+	Height           pgtype.Int4
+	Weight           pgtype.Int4
+	NationalDexOrder pgtype.Int4
+	BaseExperience   pgtype.Int4
+	IsDefault        pgtype.Bool
+	SortOrder        pgtype.Int4
+}
+
+func (q *Queries) CreatePokemon(ctx context.Context, arg CreatePokemonParams) (pgtype.UUID, error) {
+	row := q.db.QueryRow(ctx, createPokemon,
+		arg.Name,
+		arg.Height,
+		arg.Weight,
+		arg.NationalDexOrder,
+		arg.BaseExperience,
+		arg.IsDefault,
+		arg.SortOrder,
+	)
+	var id pgtype.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
 const getPokemon = `-- name: GetPokemon :one
 SELECT id, name, height, weight, national_dex_order, base_experience, is_default, sort_order FROM pokemon
 WHERE id = $1
