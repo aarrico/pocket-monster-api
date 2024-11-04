@@ -2,32 +2,37 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"github.com/aarrico/pocket-monster-api/db/seed"
 	"github.com/aarrico/pocket-monster-api/internal/db"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/aarrico/pocket-monster-api/internal/utils"
 	"github.com/joho/godotenv"
 	"log"
 	"os"
+	"path/filepath"
 )
 
 func main() {
-	if err := godotenv.Load(".env"); err != nil {
+	if err := godotenv.Load(filepath.Join("./", ".env")); err != nil {
 		log.Fatalf("could not load .env file!")
 	}
 
-	ctx := context.Background()
-	dbConnStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
-		os.Getenv("DB_USER"), os.Getenv("DB_PASS"), os.Getenv("DB_HOST"), os.Getenv("DB_PORT"),
-		os.Getenv("DB_NAME"), os.Getenv("DB_SSL_MODE"))
+	//seedCmd := flag.NewFlagSet("seed", flag.ExitOnError)
 
-	pool, err := pgxpool.New(ctx, dbConnStr)
-	if err != nil {
-		log.Fatal(err)
+	if len(os.Args) > 1 {
+		switch os.Args[1] {
+		case "seed":
+			seed.SeedPokemon()
+			os.Exit(0)
+		default:
+			log.Fatalf("invalid command line argument")
+		}
 	}
-	defer pool.Close()
 
+	ctx := context.Background()
+	pool := utils.ConnectToDb(ctx)
 	queries := db.New(pool)
-
-	pkm, err := queries.ListPokemon(ctx)
+	pkm, _ := queries.ListPokemon(ctx)
 	print(pkm)
+
+	pool.Close()
 }

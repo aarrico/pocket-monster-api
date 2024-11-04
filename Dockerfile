@@ -19,6 +19,7 @@ WORKDIR /app
 
 # Copy the binary from the builder stage
 COPY --from=builder /app/pokemon-api .
+COPY --from=builder /app/.env .
 
 # Expose the port your app will listen on (adjust if needed)
 EXPOSE 8080
