@@ -18,3 +18,14 @@ type Pokemon struct {
 	IsDefault        pgtype.Bool
 	SortOrder        pgtype.Int4
 }
+
+type Type struct {
+	ID   int32
+	Name string
+}
+
+type TypeEffectiveness struct {
+	AttackingTypeID int32
+	DefendingTypeID int32
+	Multiplier      pgtype.Numeric
+}
