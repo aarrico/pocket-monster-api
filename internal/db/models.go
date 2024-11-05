@@ -8,6 +8,12 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Ability struct {
+	ID     pgtype.UUID
+	Name   string
+	Effect string
+}
+
 type Pokemon struct {
 	ID                 pgtype.UUID
 	Name               string
@@ -25,6 +31,13 @@ type Pokemon struct {
 	BaseSpecialDefense int32
 	BaseSpeed          int32
 	BaseHp             int32
+}
+
+type PokemonAbility struct {
+	PokemonID pgtype.UUID
+	AbilityID pgtype.UUID
+	Slot      int32
+	IsHidden  bool
 }
 
 type Type struct {

@@ -31,7 +31,7 @@ func (q *Queries) GetMultiplierById(ctx context.Context, arg GetMultiplierByIdPa
 
 const getMultiplierByName = `-- name: GetMultiplierByName :one
 SELECT te.multiplier
-FROM type_effectiveness as te
+FROM type_effectiveness AS te
 JOIN type at on te.attacking_type_id = at.id
 JOIN type dt on te.defending_type_id = dt.id
 WHERE at.name = $1 AND dt.name = $2

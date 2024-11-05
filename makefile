@@ -10,5 +10,8 @@ build:
 migrate:
 	goose -dir $(GOOSE_MIGRATION_DIR) $(GOOSE_DRIVER) $(GOOSE_DBSTRING) up
 
+rollback-one:
+	goose -dir $(GOOSE_MIGRATION_DIR) $(GOOSE_DRIVER) $(GOOSE_DBSTRING) down
+
 seed: build
 	out/pokemon-api seed
