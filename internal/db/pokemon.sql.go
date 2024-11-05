@@ -12,19 +12,41 @@ import (
 )
 
 const createPokemon = `-- name: CreatePokemon :one
-INSERT INTO pokemon (
-    name, height, weight, national_dex_order, base_experience, is_default, sort_order
-) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id
+INSERT INTO pokemon (name,
+                     height,
+                     weight,
+                     national_dex_order,
+                     base_experience,
+                     is_default,
+                     sort_order,
+                     primary_type,
+                     secondary_type,
+                     base_attack,
+                     base_defense,
+                     base_special_attack,
+                     base_special_defense,
+                     base_speed,
+                     base_hp)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+RETURNING id
 `
 
 type CreatePokemonParams struct {
-	Name             pgtype.Text
-	Height           pgtype.Int4
-	Weight           pgtype.Int4
-	NationalDexOrder pgtype.Int4
-	BaseExperience   pgtype.Int4
-	IsDefault        pgtype.Bool
-	SortOrder        pgtype.Int4
+	Name               string
+	Height             pgtype.Int4
+	Weight             pgtype.Int4
+	NationalDexOrder   int32
+	BaseExperience     pgtype.Int4
+	IsDefault          bool
+	SortOrder          int32
+	PrimaryType        int32
+	SecondaryType      pgtype.Int4
+	BaseAttack         int32
+	BaseDefense        int32
+	BaseSpecialAttack  int32
+	BaseSpecialDefense int32
+	BaseSpeed          int32
+	BaseHp             int32
 }
 
 func (q *Queries) CreatePokemon(ctx context.Context, arg CreatePokemonParams) (pgtype.UUID, error) {
@@ -36,6 +58,14 @@ func (q *Queries) CreatePokemon(ctx context.Context, arg CreatePokemonParams) (p
 		arg.BaseExperience,
 		arg.IsDefault,
 		arg.SortOrder,
+		arg.PrimaryType,
+		arg.SecondaryType,
+		arg.BaseAttack,
+		arg.BaseDefense,
+		arg.BaseSpecialAttack,
+		arg.BaseSpecialDefense,
+		arg.BaseSpeed,
+		arg.BaseHp,
 	)
 	var id pgtype.UUID
 	err := row.Scan(&id)
@@ -43,7 +73,8 @@ func (q *Queries) CreatePokemon(ctx context.Context, arg CreatePokemonParams) (p
 }
 
 const getPokemon = `-- name: GetPokemon :one
-SELECT id, name, height, weight, national_dex_order, base_experience, is_default, sort_order FROM pokemon
+SELECT id, name, height, weight, national_dex_order, base_experience, is_default, sort_order, primary_type, secondary_type, base_attack, base_defense, base_special_attack, base_special_defense, base_speed, base_hp
+FROM pokemon
 WHERE id = $1
 `
 
@@ -59,12 +90,21 @@ func (q *Queries) GetPokemon(ctx context.Context, id pgtype.UUID) (Pokemon, erro
 		&i.BaseExperience,
 		&i.IsDefault,
 		&i.SortOrder,
+		&i.PrimaryType,
+		&i.SecondaryType,
+		&i.BaseAttack,
+		&i.BaseDefense,
+		&i.BaseSpecialAttack,
+		&i.BaseSpecialDefense,
+		&i.BaseSpeed,
+		&i.BaseHp,
 	)
 	return i, err
 }
 
 const listPokemon = `-- name: ListPokemon :many
-SELECT id, name, height, weight, national_dex_order, base_experience, is_default, sort_order from pokemon
+SELECT id, name, height, weight, national_dex_order, base_experience, is_default, sort_order, primary_type, secondary_type, base_attack, base_defense, base_special_attack, base_special_defense, base_speed, base_hp
+from pokemon
 ORDER BY sort_order
 `
 
@@ -86,6 +126,14 @@ func (q *Queries) ListPokemon(ctx context.Context) ([]Pokemon, error) {
 			&i.BaseExperience,
 			&i.IsDefault,
 			&i.SortOrder,
+			&i.PrimaryType,
+			&i.SecondaryType,
+			&i.BaseAttack,
+			&i.BaseDefense,
+			&i.BaseSpecialAttack,
+			&i.BaseSpecialDefense,
+			&i.BaseSpeed,
+			&i.BaseHp,
 		); err != nil {
 			return nil, err
 		}

@@ -21,7 +21,7 @@ func main() {
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
 		case "seed":
-			seed.SeedPokemon()
+			seed.PopulatePokemonTable()
 			os.Exit(0)
 		default:
 			log.Fatalf("invalid command line argument")

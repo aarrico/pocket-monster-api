@@ -12,60 +12,71 @@ import (
 	"strings"
 )
 
-type ApiData struct {
-	Name string `json:"name"`
-	Url  string `json:"url"`
-}
-
-type ApiResp struct {
-	Count    int       `json:"count"`
-	Next     string    `json:"next"`
-	Previous string    `json:"previous"`
-	Results  []ApiData `json:"results"`
-}
-
-type Species struct {
-	Name string `json:"name"`
-	Url  string `json:"url"`
-}
-
-type Pokemon struct {
-	Name           string  `json:"name"`
-	Height         int     `json:"height"`
-	Weight         int     `json:"weight"`
-	Species        Species `json:"species"`
-	BaseExperience int     `json:"base_experience"`
-	IsDefault      bool    `json:"is_default"`
-	SortOrder      int     `json:"order"`
-}
-
-func getPokemon(url string) (db.CreatePokemonParams, error) {
-	body := utils.GetBodyFromUrl(url, true)
-
-	var pkmn Pokemon
-	var pkmnParams db.CreatePokemonParams
-	if err := json.Unmarshal(body, &pkmn); err != nil {
-		fmt.Println("error unmarshalling pokemon data:", err)
-		return pkmnParams, err
+func populateTypes(types []Types, dbParams *db.CreatePokemonParams, ctx context.Context, queries *db.Queries) {
+	for _, typeData := range types {
+		typeId, _ := queries.GetTypeByName(ctx, strings.ToLower(typeData.Type.Name))
+		if typeData.Slot == 1 {
+			dbParams.PrimaryType = typeId
+		} else {
+			dbParams.SecondaryType = pgtype.Int4{Int32: typeId, Valid: true}
+		}
 	}
+}
 
-	u, _ := url2.Parse(pkmn.Species.Url)
+func populateBaseStats(stats []BaseStats, dbParams *db.CreatePokemonParams) {
+	for _, statData := range stats {
+		statVal := int32(statData.Value)
+		switch statData.Stat.Name {
+		case "attack":
+			dbParams.BaseAttack = statVal
+		case "defense":
+			dbParams.BaseDefense = statVal
+		case "special-attack":
+			dbParams.BaseSpecialAttack = statVal
+		case "special-defense":
+			dbParams.BaseSpecialDefense = statVal
+		case "speed":
+			dbParams.BaseSpeed = statVal
+		case "hp":
+			dbParams.BaseHp = statVal
+		}
+	}
+}
+
+func getNationalDexOrder(speciesUrl string) int32 {
+	u, _ := url2.Parse(speciesUrl)
 	parts := strings.Split(u.Path, "/")
 	dexOrderStr := parts[len(parts)-2]
 	dexOrder, _ := strconv.Atoi(dexOrderStr)
 
-	pkmnParams.Name = pgtype.Text{String: pkmn.Name, Valid: true}
-	pkmnParams.Height = pgtype.Int4{Int32: int32(pkmn.Height), Valid: true}
-	pkmnParams.Weight = pgtype.Int4{Int32: int32(pkmn.Weight), Valid: true}
-	pkmnParams.NationalDexOrder = pgtype.Int4{Int32: int32(dexOrder), Valid: true}
-	pkmnParams.BaseExperience = pgtype.Int4{Int32: int32(pkmn.BaseExperience), Valid: true}
-	pkmnParams.SortOrder = pgtype.Int4{Int32: int32(pkmn.SortOrder), Valid: true}
-	pkmnParams.IsDefault = pgtype.Bool{Bool: pkmn.IsDefault, Valid: true}
-
-	return pkmnParams, nil
+	return int32(dexOrder)
 }
 
-func SeedPokemon() {
+func getPokemon(url string, ctx context.Context, queries *db.Queries) (db.CreatePokemonParams, error) {
+	body := utils.GetBodyFromUrl(url, true)
+
+	var pkmn Pokemon
+	var dbParams db.CreatePokemonParams
+	if err := json.Unmarshal(body, &pkmn); err != nil {
+		fmt.Println("error unmarshalling pokemon data:", err)
+		return dbParams, err
+	}
+
+	dbParams.Name = pkmn.Name
+	dbParams.Height = pgtype.Int4{Int32: pkmn.Height, Valid: true}
+	dbParams.Weight = pgtype.Int4{Int32: pkmn.Weight, Valid: true}
+	dbParams.NationalDexOrder = getNationalDexOrder(pkmn.Species.Url)
+	dbParams.BaseExperience = pgtype.Int4{Int32: pkmn.BaseExperience, Valid: true}
+	dbParams.SortOrder = pkmn.SortOrder
+	dbParams.IsDefault = pkmn.IsDefault
+
+	populateTypes(pkmn.Types, &dbParams, ctx, queries)
+	populateBaseStats(pkmn.BaseStats, &dbParams)
+
+	return dbParams, nil
+}
+
+func PopulatePokemonTable() {
 	ctx := context.Background()
 	pool := utils.ConnectToDb(ctx)
 	queries := db.New(pool)
@@ -82,7 +93,7 @@ func SeedPokemon() {
 		}
 
 		for _, rawData := range apiResponse.Results {
-			pkmn, err := getPokemon(rawData.Url)
+			pkmn, err := getPokemon(rawData.Url, ctx, queries)
 			if err != nil {
 				fmt.Println("failed to convert pokemon to pgdata:", err)
 			}

@@ -9,14 +9,22 @@ import (
 )
 
 type Pokemon struct {
-	ID               pgtype.UUID
-	Name             pgtype.Text
-	Height           pgtype.Int4
-	Weight           pgtype.Int4
-	NationalDexOrder pgtype.Int4
-	BaseExperience   pgtype.Int4
-	IsDefault        pgtype.Bool
-	SortOrder        pgtype.Int4
+	ID                 pgtype.UUID
+	Name               string
+	Height             pgtype.Int4
+	Weight             pgtype.Int4
+	NationalDexOrder   int32
+	BaseExperience     pgtype.Int4
+	IsDefault          bool
+	SortOrder          int32
+	PrimaryType        int32
+	SecondaryType      pgtype.Int4
+	BaseAttack         int32
+	BaseDefense        int32
+	BaseSpecialAttack  int32
+	BaseSpecialDefense int32
+	BaseSpeed          int32
+	BaseHp             int32
 }
 
 type Type struct {

@@ -11,4 +11,4 @@ migrate:
 	goose -dir $(GOOSE_MIGRATION_DIR) $(GOOSE_DRIVER) $(GOOSE_DBSTRING) up
 
 seed: build
-	/out/pokemon-api seed
+	out/pokemon-api seed
