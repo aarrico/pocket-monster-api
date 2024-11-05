@@ -16,12 +16,10 @@ func main() {
 		log.Fatalf("could not load .env file!")
 	}
 
-	//seedCmd := flag.NewFlagSet("seed", flag.ExitOnError)
-
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
 		case "seed":
-			seed.PopulatePokemonTable()
+			seed.PopulateDb()
 			os.Exit(0)
 		default:
 			log.Fatalf("invalid command line argument")
@@ -31,6 +29,7 @@ func main() {
 	ctx := context.Background()
 	pool := utils.ConnectToDb(ctx)
 	queries := db.New(pool)
+
 	pkm, _ := queries.ListPokemon(ctx)
 	print(pkm)
 

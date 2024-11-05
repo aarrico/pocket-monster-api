@@ -102,6 +102,19 @@ func (q *Queries) GetPokemon(ctx context.Context, id pgtype.UUID) (Pokemon, erro
 	return i, err
 }
 
+const getPokemonIdByName = `-- name: GetPokemonIdByName :one
+SELECT id
+FROM pokemon
+WHERE name = $1
+`
+
+func (q *Queries) GetPokemonIdByName(ctx context.Context, name string) (pgtype.UUID, error) {
+	row := q.db.QueryRow(ctx, getPokemonIdByName, name)
+	var id pgtype.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
 const listPokemon = `-- name: ListPokemon :many
 SELECT id, name, height, weight, national_dex_order, base_experience, is_default, sort_order, primary_type, secondary_type, base_attack, base_defense, base_special_attack, base_special_defense, base_speed, base_hp
 from pokemon

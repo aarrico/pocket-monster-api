@@ -1,3 +1,9 @@
+-- name: CreateAbility :one
+INSERT INTO ability
+    (name, effect)
+VALUES ($1, $2)
+RETURNING id;
+
 -- name: GetAbility :one
 SELECT *
 from ability
@@ -22,3 +28,8 @@ FROM ability AS a
          INNER JOIN pokemon p ON pa.pokemon_id = p.id
 WHERE p.national_dex_order = $1
 ORDER BY pa.slot;
+
+-- name: SetPokemonAbilityRelation :exec
+INSERT INTO pokemon_ability
+    (pokemon_id, ability_id, slot, is_hidden)
+VALUES ($1, $2, $3, $4);

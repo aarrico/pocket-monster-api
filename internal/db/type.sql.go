@@ -14,7 +14,8 @@ import (
 const getMultiplierById = `-- name: GetMultiplierById :one
 SELECT multiplier
 FROM type_effectiveness
-WHERE attacking_type_id = $1 AND defending_type_id = $2
+WHERE attacking_type_id = $1
+  AND defending_type_id = $2
 `
 
 type GetMultiplierByIdParams struct {
@@ -32,9 +33,10 @@ func (q *Queries) GetMultiplierById(ctx context.Context, arg GetMultiplierByIdPa
 const getMultiplierByName = `-- name: GetMultiplierByName :one
 SELECT te.multiplier
 FROM type_effectiveness AS te
-JOIN type at on te.attacking_type_id = at.id
-JOIN type dt on te.defending_type_id = dt.id
-WHERE at.name = $1 AND dt.name = $2
+         INNER JOIN type at ON te.attacking_type_id = at.id
+         INNER JOIN type dt ON te.defending_type_id = dt.id
+WHERE at.name = $1
+  AND dt.name = $2
 `
 
 type GetMultiplierByNameParams struct {
@@ -50,7 +52,9 @@ func (q *Queries) GetMultiplierByName(ctx context.Context, arg GetMultiplierByNa
 }
 
 const getTypeByName = `-- name: GetTypeByName :one
-SELECT id FROM type WHERE name = $1
+SELECT id
+FROM type
+WHERE name = $1
 `
 
 func (q *Queries) GetTypeByName(ctx context.Context, name string) (int32, error) {
@@ -61,7 +65,8 @@ func (q *Queries) GetTypeByName(ctx context.Context, name string) (int32, error)
 }
 
 const listTypes = `-- name: ListTypes :many
-SELECT id, name FROM type
+SELECT id, name
+FROM type
 `
 
 func (q *Queries) ListTypes(ctx context.Context) ([]Type, error) {

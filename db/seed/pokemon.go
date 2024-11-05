@@ -1,7 +1,6 @@
 package seed
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/aarrico/pocket-monster-api/internal/db"
@@ -12,7 +11,7 @@ import (
 	"strings"
 )
 
-func populateTypes(types []Types, dbParams *db.CreatePokemonParams, ctx context.Context, queries *db.Queries) {
+func populateTypes(types []Types, dbParams *db.CreatePokemonParams) {
 	for _, typeData := range types {
 		typeId, _ := queries.GetTypeByName(ctx, strings.ToLower(typeData.Type.Name))
 		if typeData.Slot == 1 {
@@ -52,7 +51,7 @@ func getNationalDexOrder(speciesUrl string) int32 {
 	return int32(dexOrder)
 }
 
-func getPokemon(url string, ctx context.Context, queries *db.Queries) (db.CreatePokemonParams, error) {
+func getPokemon(url string) (db.CreatePokemonParams, error) {
 	body := utils.GetBodyFromUrl(url, true)
 
 	var pkmn Pokemon
@@ -70,17 +69,13 @@ func getPokemon(url string, ctx context.Context, queries *db.Queries) (db.Create
 	dbParams.SortOrder = pkmn.SortOrder
 	dbParams.IsDefault = pkmn.IsDefault
 
-	populateTypes(pkmn.Types, &dbParams, ctx, queries)
+	populateTypes(pkmn.Types, &dbParams)
 	populateBaseStats(pkmn.BaseStats, &dbParams)
 
 	return dbParams, nil
 }
 
 func PopulatePokemonTable() {
-	ctx := context.Background()
-	pool := utils.ConnectToDb(ctx)
-	queries := db.New(pool)
-
 	url := "https://pokeapi.co/api/v2/pokemon"
 
 	for {
@@ -93,11 +88,12 @@ func PopulatePokemonTable() {
 		}
 
 		for _, rawData := range apiResponse.Results {
-			pkmn, err := getPokemon(rawData.Url, ctx, queries)
+			pkmn, err := getPokemon(rawData.Url)
 			if err != nil {
 				fmt.Println("failed to convert pokemon to pgdata:", err)
 			}
-			_, err = queries.CreatePokemon(ctx, pkmn)
+			id, err := queries.CreatePokemon(ctx, pkmn)
+			pkmnNameToId[pkmn.Name] = id
 		}
 
 		url = apiResponse.Next
@@ -105,6 +101,4 @@ func PopulatePokemonTable() {
 			break
 		}
 	}
-
-	pool.Close()
 }

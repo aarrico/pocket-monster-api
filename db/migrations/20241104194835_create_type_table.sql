@@ -409,5 +409,6 @@ VALUES
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE type
+DROP TABLE type_effectiveness;
+DROP TABLE type;
 -- +goose StatementEnd

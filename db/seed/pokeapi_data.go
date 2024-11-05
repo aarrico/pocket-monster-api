@@ -38,3 +38,20 @@ type Pokemon struct {
 	BaseStats      []BaseStats `json:"stats"`
 	Types          []Types     `json:"types"`
 }
+
+type EffectEntry struct {
+	Effect   string   `json:"effect"`
+	Language SubField `json:"language"`
+}
+
+type PokemonForAbility struct {
+	IsHidden bool     `json:"is_hidden"`
+	Slot     int      `json:"slot"`
+	Pokemon  SubField `json:"pokemon"`
+}
+
+type Ability struct {
+	Name    string              `json:"name"`
+	Entries []EffectEntry       `json:"effect_entries"`
+	Pokemon []PokemonForAbility `json:"pokemon"`
+}

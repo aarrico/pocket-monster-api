@@ -3,6 +3,11 @@ SELECT *
 FROM pokemon
 WHERE id = $1;
 
+-- name: GetPokemonIdByName :one
+SELECT id
+FROM pokemon
+WHERE name = $1;
+
 -- name: ListPokemon :many
 SELECT *
 from pokemon

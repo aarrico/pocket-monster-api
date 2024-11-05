@@ -11,6 +11,25 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const createAbility = `-- name: CreateAbility :one
+INSERT INTO ability
+    (name, effect)
+VALUES ($1, $2)
+RETURNING id
+`
+
+type CreateAbilityParams struct {
+	Name   string
+	Effect string
+}
+
+func (q *Queries) CreateAbility(ctx context.Context, arg CreateAbilityParams) (pgtype.UUID, error) {
+	row := q.db.QueryRow(ctx, createAbility, arg.Name, arg.Effect)
+	var id pgtype.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
 const getAbilitiesForPokemon = `-- name: GetAbilitiesForPokemon :many
 SELECT a.id, a.name, a.effect, pa.slot, pa.is_hidden
 FROM ability AS a
@@ -120,4 +139,27 @@ func (q *Queries) GetAbilityByName(ctx context.Context, name string) (Ability, e
 	var i Ability
 	err := row.Scan(&i.ID, &i.Name, &i.Effect)
 	return i, err
+}
+
+const setPokemonAbilityRelation = `-- name: SetPokemonAbilityRelation :exec
+INSERT INTO pokemon_ability
+    (pokemon_id, ability_id, slot, is_hidden)
+VALUES ($1, $2, $3, $4)
+`
+
+type SetPokemonAbilityRelationParams struct {
+	PokemonID pgtype.UUID
+	AbilityID pgtype.UUID
+	Slot      int32
+	IsHidden  bool
+}
+
+func (q *Queries) SetPokemonAbilityRelation(ctx context.Context, arg SetPokemonAbilityRelationParams) error {
+	_, err := q.db.Exec(ctx, setPokemonAbilityRelation,
+		arg.PokemonID,
+		arg.AbilityID,
+		arg.Slot,
+		arg.IsHidden,
+	)
+	return err
 }
