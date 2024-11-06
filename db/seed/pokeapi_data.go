@@ -1,5 +1,11 @@
 package seed
 
+import (
+	"encoding/json"
+	"fmt"
+	"github.com/aarrico/pocket-monster-api/internal/utils"
+)
+
 type ApiData struct {
 	Name string `json:"name"`
 	Url  string `json:"url"`
@@ -54,4 +60,25 @@ type Ability struct {
 	Name    string              `json:"name"`
 	Entries []EffectEntry       `json:"effect_entries"`
 	Pokemon []PokemonForAbility `json:"pokemon"`
+}
+
+func populateTableFromApi(url string, populate populateTableFunc) {
+	for {
+		body := utils.GetBodyFromUrl(url, true)
+
+		var apiResponse ApiResp
+		if err := json.Unmarshal(body, &apiResponse); err != nil {
+			fmt.Println("error unmarshalling api response:", err)
+			break
+		}
+
+		for _, rawData := range apiResponse.Results {
+			populate(rawData.Url)
+		}
+
+		url = apiResponse.Next
+		if url == "" {
+			break
+		}
+	}
 }

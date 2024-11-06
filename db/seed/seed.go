@@ -7,6 +7,8 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type populateTableFunc func(string)
+
 var pkmnNameToId map[string]pgtype.UUID
 var ctx context.Context
 var queries *db.Queries
@@ -18,8 +20,8 @@ func PopulateDb() {
 
 	pkmnNameToId = make(map[string]pgtype.UUID)
 
-	PopulatePokemonTable()
-	PopulateAbilityTable()
+	populateTableFromApi("https://pokeapi.co/api/v2/pokemon", populatePokemon)
+	populateTableFromApi("https://pokeapi.co/api/v2/ability", populateAbilities)
 
 	pool.Close()
 }

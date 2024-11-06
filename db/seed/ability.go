@@ -7,7 +7,7 @@ import (
 	"github.com/aarrico/pocket-monster-api/internal/utils"
 )
 
-func setAbilityData(url string) {
+func populateAbilities(url string) {
 	body := utils.GetBodyFromUrl(url, true)
 
 	var ability Ability
@@ -38,28 +38,5 @@ func setAbilityData(url string) {
 			AbilityID: abilityId,
 		}
 		queries.SetPokemonAbilityRelation(ctx, pkmnAbilityParams)
-	}
-}
-
-func PopulateAbilityTable() {
-	url := "https://pokeapi.co/api/v2/ability"
-
-	for {
-		body := utils.GetBodyFromUrl(url, true)
-
-		var apiResponse ApiResp
-		if err := json.Unmarshal(body, &apiResponse); err != nil {
-			fmt.Println("error unmarshalling api response:", err)
-			break
-		}
-
-		for _, rawData := range apiResponse.Results {
-			setAbilityData(rawData.Url)
-		}
-
-		url = apiResponse.Next
-		if url == "" {
-			break
-		}
 	}
 }

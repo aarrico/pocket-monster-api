@@ -51,14 +51,14 @@ func getNationalDexOrder(speciesUrl string) int32 {
 	return int32(dexOrder)
 }
 
-func getPokemon(url string) (db.CreatePokemonParams, error) {
+func populatePokemon(url string) {
 	body := utils.GetBodyFromUrl(url, true)
 
 	var pkmn Pokemon
 	var dbParams db.CreatePokemonParams
 	if err := json.Unmarshal(body, &pkmn); err != nil {
 		fmt.Println("error unmarshalling pokemon data:", err)
-		return dbParams, err
+		return
 	}
 
 	dbParams.Name = pkmn.Name
@@ -72,33 +72,10 @@ func getPokemon(url string) (db.CreatePokemonParams, error) {
 	populateTypes(pkmn.Types, &dbParams)
 	populateBaseStats(pkmn.BaseStats, &dbParams)
 
-	return dbParams, nil
-}
-
-func PopulatePokemonTable() {
-	url := "https://pokeapi.co/api/v2/pokemon"
-
-	for {
-		body := utils.GetBodyFromUrl(url, true)
-
-		var apiResponse ApiResp
-		if err := json.Unmarshal(body, &apiResponse); err != nil {
-			fmt.Println("error unmarshalling api response:", err)
-			break
-		}
-
-		for _, rawData := range apiResponse.Results {
-			pkmn, err := getPokemon(rawData.Url)
-			if err != nil {
-				fmt.Println("failed to convert pokemon to pgdata:", err)
-			}
-			id, err := queries.CreatePokemon(ctx, pkmn)
-			pkmnNameToId[pkmn.Name] = id
-		}
-
-		url = apiResponse.Next
-		if url == "" {
-			break
-		}
+	id, err := queries.CreatePokemon(ctx, dbParams)
+	if err != nil {
+		fmt.Println("error inserting pokemon:", err)
 	}
+
+	pkmnNameToId[pkmn.Name] = id
 }
