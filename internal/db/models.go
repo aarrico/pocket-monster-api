@@ -5,13 +5,156 @@
 package db
 
 import (
+	"database/sql/driver"
+	"fmt"
+
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type DamageClass string
+
+const (
+	DamageClassPhysical DamageClass = "physical"
+	DamageClassSpecial  DamageClass = "special"
+	DamageClassStatus   DamageClass = "status"
+)
+
+func (e *DamageClass) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = DamageClass(s)
+	case string:
+		*e = DamageClass(s)
+	default:
+		return fmt.Errorf("unsupported scan type for DamageClass: %T", src)
+	}
+	return nil
+}
+
+type NullDamageClass struct {
+	DamageClass DamageClass
+	Valid       bool // Valid is true if DamageClass is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullDamageClass) Scan(value interface{}) error {
+	if value == nil {
+		ns.DamageClass, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.DamageClass.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullDamageClass) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.DamageClass), nil
+}
+
+type MoveAilment string
+
+const (
+	MoveAilmentNone           MoveAilment = "none"
+	MoveAilmentUnknown        MoveAilment = "unknown"
+	MoveAilmentParalysis      MoveAilment = "paralysis"
+	MoveAilmentSleep          MoveAilment = "sleep"
+	MoveAilmentFreeze         MoveAilment = "freeze"
+	MoveAilmentBurn           MoveAilment = "burn"
+	MoveAilmentPoison         MoveAilment = "poison"
+	MoveAilmentConfusion      MoveAilment = "confusion"
+	MoveAilmentInfatuation    MoveAilment = "infatuation"
+	MoveAilmentTrap           MoveAilment = "trap"
+	MoveAilmentNightmare      MoveAilment = "nightmare"
+	MoveAilmentTorment        MoveAilment = "torment"
+	MoveAilmentDisable        MoveAilment = "disable"
+	MoveAilmentYawn           MoveAilment = "yawn"
+	MoveAilmentHealBlock      MoveAilment = "heal-block"
+	MoveAilmentNoTypeImmunity MoveAilment = "no-type-immunity"
+	MoveAilmentLeechSeed      MoveAilment = "leech-seed"
+	MoveAilmentEmbargo        MoveAilment = "embargo"
+	MoveAilmentPerishSong     MoveAilment = "perish-song"
+	MoveAilmentIngrain        MoveAilment = "ingrain"
+)
+
+func (e *MoveAilment) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = MoveAilment(s)
+	case string:
+		*e = MoveAilment(s)
+	default:
+		return fmt.Errorf("unsupported scan type for MoveAilment: %T", src)
+	}
+	return nil
+}
+
+type NullMoveAilment struct {
+	MoveAilment MoveAilment
+	Valid       bool // Valid is true if MoveAilment is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullMoveAilment) Scan(value interface{}) error {
+	if value == nil {
+		ns.MoveAilment, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.MoveAilment.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullMoveAilment) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.MoveAilment), nil
+}
 
 type Ability struct {
 	ID     pgtype.UUID
 	Name   string
 	Effect string
+}
+
+type Move struct {
+	ID            pgtype.UUID
+	Name          string
+	Accuracy      int32
+	PowerPoints   int32
+	Priority      int32
+	Power         int32
+	DamageClass   DamageClass
+	Effect        string
+	TargetID      pgtype.UUID
+	TypeID        int32
+	Ailment       MoveAilment
+	AilmentChance int32
+	CategoryID    pgtype.UUID
+	MinHits       int32
+	MaxHits       int32
+	MinTurns      int32
+	MaxTurns      int32
+	Drain         int32
+	Healing       int32
+	CritRate      int32
+	FlinchChance  int32
+	StatChance    int32
+}
+
+type MoveCategory struct {
+	ID          pgtype.UUID
+	Name        string
+	Description string
+}
+
+type MoveTarget struct {
+	ID          pgtype.UUID
+	Name        string
+	Description string
 }
 
 type Pokemon struct {
@@ -38,6 +181,11 @@ type PokemonAbility struct {
 	AbilityID pgtype.UUID
 	Slot      int32
 	IsHidden  bool
+}
+
+type PokemonMove struct {
+	PokemonID pgtype.UUID
+	MoveID    pgtype.UUID
 }
 
 type Type struct {
