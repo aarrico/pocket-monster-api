@@ -35,3 +35,8 @@ INSERT INTO move_category
 (name, description)
 VALUES ($1, $2)
 RETURNING id;
+
+-- name: SetPokemonMove :exec
+INSERT INTO pokemon_move
+(pokemon_id, move_id)
+VALUES ($1, $2);

@@ -128,3 +128,19 @@ func (q *Queries) CreateMoveTarget(ctx context.Context, arg CreateMoveTargetPara
 	err := row.Scan(&id)
 	return id, err
 }
+
+const setPokemonMove = `-- name: SetPokemonMove :exec
+INSERT INTO pokemon_move
+(pokemon_id, move_id)
+VALUES ($1, $2)
+`
+
+type SetPokemonMoveParams struct {
+	PokemonID pgtype.UUID
+	MoveID    pgtype.UUID
+}
+
+func (q *Queries) SetPokemonMove(ctx context.Context, arg SetPokemonMoveParams) error {
+	_, err := q.db.Exec(ctx, setPokemonMove, arg.PokemonID, arg.MoveID)
+	return err
+}
