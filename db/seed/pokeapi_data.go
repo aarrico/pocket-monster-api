@@ -23,6 +23,16 @@ type SubField struct {
 	Url  string `json:"url"`
 }
 
+type Description struct {
+	Description string   `json:"description"`
+	Language    SubField `json:"language"`
+}
+
+type BasicInfo struct {
+	Name         string        `json:"name"`
+	Descriptions []Description `json:"descriptions"`
+}
+
 type BaseStats struct {
 	Value int      `json:"base_stat"`
 	Stat  SubField `json:"stat"`
@@ -60,6 +70,34 @@ type Ability struct {
 	Name    string              `json:"name"`
 	Entries []EffectEntry       `json:"effect_entries"`
 	Pokemon []PokemonForAbility `json:"pokemon"`
+}
+type MoveMeta struct {
+	Ailment       SubField `json:"ailment"`
+	Category      SubField `json:"category"`
+	MinHits       int32    `json:"min_hits"`
+	MaxHits       int32    `json:"max_hits"`
+	MinTurns      int32    `json:"min_turns"`
+	MaxTurns      int32    `json:"max_turns"`
+	Drain         int32    `json:"drain"`
+	Healing       int32    `json:"healing"`
+	CritRate      int32    `json:"crit_rate"`
+	AilmentChance int32    `json:"ailment_chance"`
+	FlinchChance  int32    `json:"flinch_chance"`
+	StatChance    int32    `json:"stat_chance"`
+}
+
+type Move struct {
+	Name        string        `json:"name"`
+	Accuracy    int32         `json:"accuracy"`
+	PowerPoints int32         `json:"pp"`
+	Priority    int32         `json:"priority"`
+	Power       int32         `json:"power"`
+	DamageClass SubField      `json:"damage_class"`
+	Effect      []EffectEntry `json:"effect_entries"`
+	Meta        MoveMeta      `json:"meta"`
+	Target      SubField      `json:"target"`
+	Type        SubField      `json:"type"`
+	Pokemon     []SubField    `json:"learned_by_pokemon"`
 }
 
 func populateTableFromApi(url string, populate populateTableFunc) {

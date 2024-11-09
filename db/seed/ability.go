@@ -7,17 +7,16 @@ import (
 	"github.com/aarrico/pocket-monster-api/internal/utils"
 )
 
-func populateAbilities(url string) {
+func populateAbility(url string) {
 	body := utils.GetBodyFromUrl(url, true)
 
 	var ability Ability
-	var dbParams db.CreateAbilityParams
 	if err := json.Unmarshal(body, &ability); err != nil {
 		fmt.Println("error unmarshalling ability data:", err)
+		return
 	}
 
-	dbParams.Name = ability.Name
-
+	dbParams := db.CreateAbilityParams{Name: ability.Name}
 	for _, effect := range ability.Entries {
 		if effect.Language.Name == "en" {
 			dbParams.Effect = effect.Effect
@@ -27,6 +26,7 @@ func populateAbilities(url string) {
 	abilityId, err := queries.CreateAbility(ctx, dbParams)
 	if err != nil {
 		fmt.Printf("failed to create ability %s:\n%s", dbParams.Name, err)
+		return
 	}
 
 	for _, pkmn := range ability.Pokemon {

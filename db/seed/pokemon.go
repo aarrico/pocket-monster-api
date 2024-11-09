@@ -55,19 +55,20 @@ func populatePokemon(url string) {
 	body := utils.GetBodyFromUrl(url, true)
 
 	var pkmn Pokemon
-	var dbParams db.CreatePokemonParams
 	if err := json.Unmarshal(body, &pkmn); err != nil {
 		fmt.Println("error unmarshalling pokemon data:", err)
 		return
 	}
 
-	dbParams.Name = pkmn.Name
-	dbParams.Height = pgtype.Int4{Int32: pkmn.Height, Valid: true}
-	dbParams.Weight = pgtype.Int4{Int32: pkmn.Weight, Valid: true}
-	dbParams.NationalDexOrder = getNationalDexOrder(pkmn.Species.Url)
-	dbParams.BaseExperience = pgtype.Int4{Int32: pkmn.BaseExperience, Valid: true}
-	dbParams.SortOrder = pkmn.SortOrder
-	dbParams.IsDefault = pkmn.IsDefault
+	dbParams := db.CreatePokemonParams{
+		Name:             pkmn.Name,
+		Height:           pgtype.Int4{Int32: pkmn.Height, Valid: true},
+		Weight:           pgtype.Int4{Int32: pkmn.Weight, Valid: true},
+		NationalDexOrder: getNationalDexOrder(pkmn.Species.Url),
+		BaseExperience:   pgtype.Int4{Int32: pkmn.BaseExperience, Valid: true},
+		SortOrder:        pkmn.SortOrder,
+		IsDefault:        pkmn.IsDefault,
+	}
 
 	populateTypes(pkmn.Types, &dbParams)
 	populateBaseStats(pkmn.BaseStats, &dbParams)
@@ -75,6 +76,7 @@ func populatePokemon(url string) {
 	id, err := queries.CreatePokemon(ctx, dbParams)
 	if err != nil {
 		fmt.Println("error inserting pokemon:", err)
+		return
 	}
 
 	pkmnNameToId[pkmn.Name] = id
