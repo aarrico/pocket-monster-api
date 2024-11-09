@@ -2,8 +2,8 @@ package seed
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/aarrico/pocket-monster-api/internal/utils"
+	"log"
 )
 
 type ApiData struct {
@@ -106,7 +106,7 @@ func populateTableFromApi(url string, populate populateTableFunc) {
 
 		var apiResponse ApiResp
 		if err := json.Unmarshal(body, &apiResponse); err != nil {
-			fmt.Println("error unmarshalling api response:", err)
+			log.Println("error unmarshalling api response:", err)
 			break
 		}
 

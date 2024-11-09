@@ -2,10 +2,10 @@ package seed
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/aarrico/pocket-monster-api/internal/db"
 	"github.com/aarrico/pocket-monster-api/internal/utils"
 	"github.com/jackc/pgx/v5/pgtype"
+	"log"
 	url2 "net/url"
 	"strconv"
 	"strings"
@@ -56,7 +56,7 @@ func populatePokemon(url string) {
 
 	var pkmn Pokemon
 	if err := json.Unmarshal(body, &pkmn); err != nil {
-		fmt.Println("error unmarshalling pokemon data:", err)
+		log.Println("error unmarshalling pokemon data:", err)
 		return
 	}
 
@@ -75,7 +75,7 @@ func populatePokemon(url string) {
 
 	id, err := queries.CreatePokemon(ctx, dbParams)
 	if err != nil {
-		fmt.Println("error inserting pokemon:", err)
+		log.Println("error inserting pokemon:", err)
 		return
 	}
 

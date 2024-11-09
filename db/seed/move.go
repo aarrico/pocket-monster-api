@@ -2,9 +2,9 @@ package seed
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/aarrico/pocket-monster-api/internal/db"
 	"github.com/aarrico/pocket-monster-api/internal/utils"
+	"log"
 )
 
 func populateMoveTarget(url string) {
@@ -12,7 +12,7 @@ func populateMoveTarget(url string) {
 
 	var moveTarget BasicInfo
 	if err := json.Unmarshal(body, &moveTarget); err != nil {
-		fmt.Println("error unmarshalling ability data:", err)
+		log.Println("error unmarshalling ability data:", err)
 		return
 	}
 
@@ -28,7 +28,7 @@ func populateMoveTarget(url string) {
 
 	targetId, err := queries.CreateMoveTarget(ctx, dbParams)
 	if err != nil {
-		fmt.Printf("failed to create move target %s:\n%s", dbParams.Name, err)
+		log.Printf("failed to create move target %s:\n%s", dbParams.Name, err)
 		return
 	}
 
@@ -40,7 +40,7 @@ func populateMoveCategory(url string) {
 
 	var moveCategory BasicInfo
 	if err := json.Unmarshal(body, &moveCategory); err != nil {
-		fmt.Println("error unmarshalling ability data:", err)
+		log.Println("error unmarshalling ability data:", err)
 		return
 	}
 
@@ -56,7 +56,7 @@ func populateMoveCategory(url string) {
 
 	categoryId, err := queries.CreateMoveCategory(ctx, dbParams)
 	if err != nil {
-		fmt.Printf("failed to create move category %s:\n%s", dbParams.Name, err)
+		log.Printf("failed to create move category %s:\n%s", dbParams.Name, err)
 		return
 	}
 
@@ -68,13 +68,13 @@ func populateMove(url string) {
 
 	var move Move
 	if err := json.Unmarshal(body, &move); err != nil {
-		fmt.Println("error unmarshalling move data:", err)
+		log.Println("error unmarshalling move data:", err)
 		return
 	}
 
 	moveTypeId, err := queries.GetTypeByName(ctx, move.Type.Name)
 	if err != nil {
-		fmt.Printf("failed to get type id for move %s\ntype name %s:\n%s", move.Name, move.Type.Name, err)
+		log.Printf("failed to get type id for move %s\ntype name %s:\n%s", move.Name, move.Type.Name, err)
 		return
 	}
 
@@ -109,7 +109,7 @@ func populateMove(url string) {
 
 	_, err = queries.CreateMove(ctx, dbParams)
 	if err != nil {
-		fmt.Printf("failed to add %s to db:\n%s", move.Name, err)
+		log.Printf("failed to add %s to db:\n%s", move.Name, err)
 		return
 	}
 }

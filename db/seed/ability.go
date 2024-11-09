@@ -2,9 +2,9 @@ package seed
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/aarrico/pocket-monster-api/internal/db"
 	"github.com/aarrico/pocket-monster-api/internal/utils"
+	"log"
 )
 
 func populateAbility(url string) {
@@ -12,7 +12,7 @@ func populateAbility(url string) {
 
 	var ability Ability
 	if err := json.Unmarshal(body, &ability); err != nil {
-		fmt.Println("error unmarshalling ability data:", err)
+		log.Println("error unmarshalling ability data:", err)
 		return
 	}
 
@@ -25,7 +25,7 @@ func populateAbility(url string) {
 
 	abilityId, err := queries.CreateAbility(ctx, dbParams)
 	if err != nil {
-		fmt.Printf("failed to create ability %s:\n%s", dbParams.Name, err)
+		log.Printf("failed to create ability %s:\n%s\n", dbParams.Name, err)
 		return
 	}
 

@@ -6,7 +6,7 @@ package db
 
 import (
 	"database/sql/driver"
-	"fmt"
+	"log"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )

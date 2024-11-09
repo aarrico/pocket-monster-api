@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 )
@@ -10,7 +10,7 @@ import (
 func GetBodyFromUrl(url string, exitOnFail bool) []byte {
 	resp, err := http.Get(url)
 	if err != nil {
-		fmt.Println("error accessing url:", err)
+		log.Println("error accessing url:", err)
 		if exitOnFail {
 			os.Exit(1)
 		}
@@ -20,7 +20,7 @@ func GetBodyFromUrl(url string, exitOnFail bool) []byte {
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("error reading response body:", err)
+		log.Println("error reading response body:", err)
 		if exitOnFail {
 			os.Exit(1)
 		}
