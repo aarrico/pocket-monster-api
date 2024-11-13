@@ -26,17 +26,25 @@ RETURNING id;
 
 -- name: CreateMoveTarget :one
 INSERT INTO move_target
-(name, description)
+    (name, description)
 VALUES ($1, $2)
 RETURNING id;
 
 -- name: CreateMoveCategory :one
 INSERT INTO move_category
-(name, description)
+    (name, description)
 VALUES ($1, $2)
 RETURNING id;
 
 -- name: SetPokemonMove :exec
 INSERT INTO pokemon_move
-(pokemon_id, move_id)
+    (pokemon_id, move_id)
 VALUES ($1, $2);
+
+-- name: ListMoveTargets :many
+SELECT id, name, description
+FROM move_target;
+
+-- name: ListMoveCategories :many
+SELECT id, name, description
+FROM move_category;

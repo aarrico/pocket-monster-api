@@ -6,7 +6,7 @@ package db
 
 import (
 	"database/sql/driver"
-	"log"
+	"fmt"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -114,6 +114,54 @@ func (ns NullMoveAilment) Value() (driver.Value, error) {
 	return string(ns.MoveAilment), nil
 }
 
+type Statistic string
+
+const (
+	StatisticHp             Statistic = "hp"
+	StatisticAttack         Statistic = "attack"
+	StatisticDefense        Statistic = "defense"
+	StatisticSpecialAttack  Statistic = "special-attack"
+	StatisticSpecialDefense Statistic = "special-defense"
+	StatisticSpeed          Statistic = "speed"
+	StatisticAccuracy       Statistic = "accuracy"
+	StatisticEvasion        Statistic = "evasion"
+)
+
+func (e *Statistic) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = Statistic(s)
+	case string:
+		*e = Statistic(s)
+	default:
+		return fmt.Errorf("unsupported scan type for Statistic: %T", src)
+	}
+	return nil
+}
+
+type NullStatistic struct {
+	Statistic Statistic
+	Valid     bool // Valid is true if Statistic is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullStatistic) Scan(value interface{}) error {
+	if value == nil {
+		ns.Statistic, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.Statistic.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullStatistic) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.Statistic), nil
+}
+
 type Ability struct {
 	ID     pgtype.UUID
 	Name   string
@@ -155,6 +203,13 @@ type MoveTarget struct {
 	ID          pgtype.UUID
 	Name        string
 	Description string
+}
+
+type Nature struct {
+	ID       int32
+	Name     string
+	StatUp   Statistic
+	StatDown Statistic
 }
 
 type Pokemon struct {

@@ -93,7 +93,7 @@ func (q *Queries) CreateMove(ctx context.Context, arg CreateMoveParams) (pgtype.
 
 const createMoveCategory = `-- name: CreateMoveCategory :one
 INSERT INTO move_category
-(name, description)
+    (name, description)
 VALUES ($1, $2)
 RETURNING id
 `
@@ -112,7 +112,7 @@ func (q *Queries) CreateMoveCategory(ctx context.Context, arg CreateMoveCategory
 
 const createMoveTarget = `-- name: CreateMoveTarget :one
 INSERT INTO move_target
-(name, description)
+    (name, description)
 VALUES ($1, $2)
 RETURNING id
 `
@@ -129,9 +129,59 @@ func (q *Queries) CreateMoveTarget(ctx context.Context, arg CreateMoveTargetPara
 	return id, err
 }
 
+const listMoveCategories = `-- name: ListMoveCategories :many
+SELECT id, name, description
+FROM move_category
+`
+
+func (q *Queries) ListMoveCategories(ctx context.Context) ([]MoveCategory, error) {
+	rows, err := q.db.Query(ctx, listMoveCategories)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []MoveCategory
+	for rows.Next() {
+		var i MoveCategory
+		if err := rows.Scan(&i.ID, &i.Name, &i.Description); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listMoveTargets = `-- name: ListMoveTargets :many
+SELECT id, name, description
+FROM move_target
+`
+
+func (q *Queries) ListMoveTargets(ctx context.Context) ([]MoveTarget, error) {
+	rows, err := q.db.Query(ctx, listMoveTargets)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []MoveTarget
+	for rows.Next() {
+		var i MoveTarget
+		if err := rows.Scan(&i.ID, &i.Name, &i.Description); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const setPokemonMove = `-- name: SetPokemonMove :exec
 INSERT INTO pokemon_move
-(pokemon_id, move_id)
+    (pokemon_id, move_id)
 VALUES ($1, $2)
 `
 

@@ -1,13 +1,14 @@
-package seed
+package pokeapi
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/aarrico/pocket-monster-api/internal/db"
 	"github.com/aarrico/pocket-monster-api/internal/utils"
 	"log"
 )
 
-func populateAbility(url string) {
+func populateAbility(ctx context.Context, queries *db.Queries, url string) {
 	body := utils.GetBodyFromUrl(url, true)
 
 	var ability Ability

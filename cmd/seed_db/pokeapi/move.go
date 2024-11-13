@@ -1,13 +1,15 @@
-package seed
+package pokeapi
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/aarrico/pocket-monster-api/internal/db"
 	"github.com/aarrico/pocket-monster-api/internal/utils"
+	"github.com/jackc/pgx/v5/pgtype"
 	"log"
 )
 
-func populateMoveTarget(url string) {
+func populateMoveTarget(ctx context.Context, queries *db.Queries, url string) {
 	body := utils.GetBodyFromUrl(url, true)
 
 	var moveTarget BasicInfo
@@ -32,10 +34,10 @@ func populateMoveTarget(url string) {
 		return
 	}
 
-	moveTargetNameToId[dbParams.Name] = targetId
+	caches.moveTargetNameToId[dbParams.Name] = targetId
 }
 
-func populateMoveCategory(url string) {
+func populateMoveCategory(ctx context.Context, queries *db.Queries, url string) {
 	body := utils.GetBodyFromUrl(url, true)
 
 	var moveCategory BasicInfo
@@ -60,10 +62,10 @@ func populateMoveCategory(url string) {
 		return
 	}
 
-	moveCategoryNameToId[dbParams.Name] = categoryId
+	caches.moveCategoryNameToId[dbParams.Name] = categoryId
 }
 
-func populateMove(url string) {
+func populateMove(ctx context.Context, queries *db.Queries, url string) {
 	body := utils.GetBodyFromUrl(url, true)
 
 	var move Move
@@ -85,11 +87,11 @@ func populateMove(url string) {
 		Priority:      move.Priority,
 		Power:         move.Power,
 		DamageClass:   db.DamageClass(move.DamageClass.Name),
-		TargetID:      moveTargetNameToId[move.Target.Name],
+		TargetID:      caches.moveTargetNameToId[move.Target.Name],
 		TypeID:        moveTypeId,
 		Ailment:       db.MoveAilment(move.Meta.Ailment.Name),
 		AilmentChance: move.Meta.AilmentChance,
-		CategoryID:    moveCategoryNameToId[move.Meta.Category.Name],
+		CategoryID:    caches.moveCategoryNameToId[move.Meta.Category.Name],
 		MinHits:       move.Meta.MinHits,
 		MaxHits:       move.Meta.MaxHits,
 		MinTurns:      move.Meta.MinTurns,
@@ -112,4 +114,35 @@ func populateMove(url string) {
 		log.Printf("failed to add %s to db:\n%s", move.Name, err)
 		return
 	}
+}
+
+func buildMoveTargetCache(ctx context.Context, queries *db.Queries, populateCacheFromDb bool) map[string]pgtype.UUID {
+	moveTargetNameToId := make(map[string]pgtype.UUID)
+
+	if populateCacheFromDb {
+		if moveTargets, err := queries.ListMoveTargets(ctx); err != nil {
+			log.Fatalf("could not get move targets from the db, shutting down:\n%s", err)
+		} else {
+			for _, mt := range moveTargets {
+				moveTargetNameToId[mt.Name] = mt.ID
+			}
+		}
+	}
+
+	return moveTargetNameToId
+}
+
+func buildMoveCategoryCache(ctx context.Context, queries *db.Queries, populateCacheFromDb bool) map[string]pgtype.UUID {
+	moveCategoryNameToId := make(map[string]pgtype.UUID)
+	if populateCacheFromDb {
+		if moveCategories, err := queries.ListMoveCategories(ctx); err != nil {
+			log.Fatalf("could not get move categories from the db, shutting down:\n%s", err)
+		} else {
+			for _, mc := range moveCategories {
+				moveCategoryNameToId[mc.Name] = mc.ID
+			}
+		}
+	}
+
+	return moveCategoryNameToId
 }

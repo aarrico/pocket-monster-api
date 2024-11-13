@@ -1,10 +1,18 @@
-package seed
+package pokeapi
 
 import (
+	"context"
 	"encoding/json"
+	"github.com/aarrico/pocket-monster-api/internal/db"
 	"github.com/aarrico/pocket-monster-api/internal/utils"
+	"github.com/jackc/pgx/v5/pgtype"
 	"log"
 )
+
+var TypeNameToId map[string]int32
+var PkmnNameToId map[string]pgtype.UUID
+var moveTargetNameToId map[string]pgtype.UUID
+var moveCategoryNameToId map[string]pgtype.UUID
 
 type ApiData struct {
 	Name string `json:"name"`
@@ -100,7 +108,9 @@ type Move struct {
 	Pokemon     []SubField    `json:"learned_by_pokemon"`
 }
 
-func populateTableFromApi(url string, populate populateTableFunc) {
+type populateTableFunc func(context.Context, *db.Queries, string)
+
+func populateTableFromApi(ctx context.Context, queries *db.Queries, url string, populate populateTableFunc) {
 	for {
 		body := utils.GetBodyFromUrl(url, true)
 
@@ -111,7 +121,7 @@ func populateTableFromApi(url string, populate populateTableFunc) {
 		}
 
 		for _, rawData := range apiResponse.Results {
-			populate(rawData.Url)
+			populate(ctx, queries, rawData.Url)
 		}
 
 		url = apiResponse.Next

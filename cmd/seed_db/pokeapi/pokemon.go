@@ -1,6 +1,7 @@
-package seed
+package pokeapi
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/aarrico/pocket-monster-api/internal/db"
 	"github.com/aarrico/pocket-monster-api/internal/utils"
@@ -13,7 +14,7 @@ import (
 
 func populateTypes(types []Types, dbParams *db.CreatePokemonParams) {
 	for _, typeData := range types {
-		typeId, _ := queries.GetTypeByName(ctx, strings.ToLower(typeData.Type.Name))
+		typeId := caches.typeNameToId[typeData.Type.Name]
 		if typeData.Slot == 1 {
 			dbParams.PrimaryType = typeId
 		} else {
@@ -51,7 +52,7 @@ func getNationalDexOrder(speciesUrl string) int32 {
 	return int32(dexOrder)
 }
 
-func populatePokemon(url string) {
+func populatePokemon(ctx context.Context, queries *db.Queries, url string) {
 	body := utils.GetBodyFromUrl(url, true)
 
 	var pkmn Pokemon
@@ -79,5 +80,21 @@ func populatePokemon(url string) {
 		return
 	}
 
-	pkmnNameToId[pkmn.Name] = id
+	caches.pkmnNameToId[pkmn.Name] = id
+}
+
+func buildPkmnCache(ctx context.Context, queries *db.Queries, populateCacheFromDb bool) map[string]pgtype.UUID {
+	pkmnNameToId := make(map[string]pgtype.UUID)
+
+	if populateCacheFromDb {
+		if pkmn, err := queries.ListPokemon(ctx); err != nil {
+			log.Fatalf("could not get pokemon from the db, shutting down:\n%s", err)
+		} else {
+			for _, p := range pkmn {
+				pkmnNameToId[p.Name] = p.ID
+			}
+		}
+	}
+
+	return pkmnNameToId
 }
